@@ -24,7 +24,7 @@ instance Pretty Prog where
     pretty (Prog rules) = csv "\n" . map pretty $ rules
 
 instance Pretty Goal where
-
+    pretty (Goal goals) = "?- " ++ (csv ", " . map pretty $ goals) ++ "." 
 
 csv :: String -> [String] -> String
 csv delimeter [] = ""
