@@ -20,6 +20,12 @@ instance Pretty Rule where
     pretty (Rule term []) = pretty term ++ "."
     pretty (Rule term right) = pretty term ++ " :- " ++ (csv ", " . (map (pretty))) right  ++ "."
 
+instance Pretty Prog where 
+    pretty (Prog []) = ""
+    pretty (Prog [rule]) = pretty rule
+    pretty (Prog (rule:rules)) = pretty rule ++ "\n" ++ pretty (Prog rules)
+
+
 csv :: String -> [String] -> String
 csv delimeter [] = ""
 csv delimeter [x] = x
