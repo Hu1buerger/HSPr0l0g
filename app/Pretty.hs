@@ -18,12 +18,12 @@ instance Pretty Term where
 
 instance Pretty Rule where 
     pretty (Rule term []) = pretty term ++ "."
-    pretty (Rule term right) = pretty term ++ " :- " ++ (csv ", " . (map (pretty))) right  ++ "."
+    pretty (Rule term right) = pretty term ++ " :- " ++ (csv ", " . map pretty $ right)  ++ "."
 
 instance Pretty Prog where 
-    pretty (Prog []) = ""
-    pretty (Prog [rule]) = pretty rule
-    pretty (Prog (rule:rules)) = pretty rule ++ "\n" ++ pretty (Prog rules)
+    pretty (Prog rules) = csv "\n" . map pretty $ rules
+
+instance Pretty Goal where
 
 
 csv :: String -> [String] -> String
