@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Parser
+module App.Parser
   ( parse, parseFile, simpleParse, goal
   ) where
 
