@@ -14,4 +14,13 @@ instance Pretty Term where
     pretty (Comb cmbname combitems) = cmbname ++ tail
         where 
             tailmap = map (pretty) combitems
-            tail = (foldl (++) "(" tailmap) ++ ")"
+            tail = "(" ++ csv ", " tailmap ++ ")"
+
+instance Pretty Rule where 
+    pretty (Rule term []) = pretty term ++ "."
+    pretty (Rule term right) = pretty term ++ " :- " ++ (csv ", " . (map (pretty))) right  ++ "."
+
+csv :: String -> [String] -> String
+csv delimeter [] = ""
+csv delimeter [x] = x
+csv delimeter (x:xs) = x ++ delimeter ++ csv delimeter xs
