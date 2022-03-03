@@ -1,4 +1,4 @@
-module App.Vars where
+module App.Vars (Vars, freshVars) where
 
 import Data.Char (ord, chr)
 
@@ -8,16 +8,14 @@ az :: [Char]
 --az = map (chr) $ iterate (\x -> if x < ord 'Z' then x + 1 else ord 'A') (ord 'A')
 az = map chr $ [(ord 'A')..(ord 'Z')]
 
+freshVars :: [VarName]
 freshVars = map fmtTpl [(c, i) | i <- [-1..], c <- az]
     where 
-        fmtTpl :: (Char, Integer) -> String
+        fmtTpl :: (Char, Integer) -> VarName
         fmtTpl (c, n)
-            | n == -1 = [c]
-            | otherwise = [c] ++ show n
+            | n == -1 = VarName [c]
+            | otherwise = VarName ([c] ++ show n)
 
-
---freshVars :: [VarName]
---freshVars = ["A"..."Z"]
 class Vars a where 
     allVars :: a -> [VarName]
     extractVars :: a -> [VarName]
