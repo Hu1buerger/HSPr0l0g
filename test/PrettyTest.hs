@@ -5,7 +5,7 @@ import Test.QuickCheck
 import App.Type
 import App.Pretty
 
-prop_pretty_a = pretty (Var (VarName "A")) == "A"
+prop_var0 = pretty (Var (VarName "A")) == "A"
 
 prop_empty_comb1 = pretty (Comb "true" []) == "true"
 prop_empty_comb2 = pretty (Comb "[]" []) == "[]"
