@@ -11,10 +11,6 @@ import Test.QuickCheck
 data VarName = VarName String
   deriving (Eq, Ord, Show)
 
--- Generator for variable names
-instance Arbitrary VarName where
-  arbitrary = VarName <$> elements ["A", "B", "_0", "_"]
-
 -- Alias type for combinators
 type CombName = String
 
@@ -33,6 +29,10 @@ data Prog = Prog [Rule]
 -- Data type for goals
 data Goal = Goal [Term]
   deriving Show
+
+-- Generator for variable names
+instance Arbitrary VarName where
+  arbitrary = VarName <$> elements ["A", "B", "_0", "_"]
 
 -- Generator for terms
 instance Arbitrary Term where

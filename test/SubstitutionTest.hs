@@ -2,6 +2,9 @@
 
 import Test.QuickCheck
 
+import Data.List (union)
+import Data.Set (fromList, isSubsetOf)
+
 import App.Type
 import App.Pretty
 import App.Substitution
@@ -39,7 +42,49 @@ prop_test3 :: Term -> Subst -> Subst -> Bool
 prop_test3 t s1 s2 = apply (compose s1 s2) t == apply s1 (apply s2 t)
 
 prop_test4 :: Term -> Subst -> Subst -> Bool
---prop_test4 t s1 s2 = isTrivialSubstitution s1 && isTrivialSubstitution s2 ==> 
+prop_test4 t s1 s2 = domain empty == []
+
+prop_test5 :: VarName -> Bool
+prop_test5 n = domain (single n (Var n)) == []
+
+prop_test6 :: VarName -> Term -> Property
+prop_test6 x t = t /= (Var x) ==> domain (single x t) == [x]
+
+prop_test7 :: Subst -> Subst -> Bool
+prop_test7 s1 s2 = domain (compose s1 s2) `isSubset` (domain s1 `union` domain s2)
+
+prop_test8 :: VarName -> VarName -> Property
+prop_test8 x1 x2 = x1 /= x2 ==> domain (compose (single x2 (Var x1)) (single x1 (Var x2))) == [x2]
+
+prop_test9 :: Bool
+prop_test9 = allVars empty == []
+
+prop_test10 :: VarName -> Bool
+prop_test10 n = allVars (single n (Var n)) == []
+
+prop_test11 :: VarName -> Term -> Property
+prop_test11 x t = (Var x) /= t ==> allVars (single x t) == allVars t `union` [x]
+
+prop_test12 :: Subst -> Subst -> Bool
+prop_test12 s1 s2 = allVars (compose s1 s2) `isSubset` (allVars s1 `union` allVars s2)
+
+prop_test13 :: VarName -> VarName -> Property
+prop_test13 x1 x2 = x1 /= x2 ==> allVars (compose (single x2 $ Var x1) (single x1 $ Var x2)) == [x1, x2]
+
+prop_test14 :: Subst -> Bool
+prop_test14 s = domain s `isSubset` allVars s
+
+prop_test15 :: [VarName] -> Bool
+prop_test15 xs = domain $ restrictTo empty xs $ == []
+
+prop_test16 :: [VarName] -> Subst -> Bool
+prop_test16 xs s = domain $ restrictTo s xs $ `isSubset` xs
+
+-- helper
+
+isSubset :: Ord a => [a] -> [a] -> Bool
+isSubset a b = (fromList a) `isSubsetOf` (fromList b)
+
 -- Check all properties in this module:
 return []
 testAll = $quickCheckAll

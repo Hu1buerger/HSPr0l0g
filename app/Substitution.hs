@@ -20,6 +20,7 @@ instance Pretty Subst where
     pretty (Composition cs) = "{" ++ (intercalate ", " . map (\(VarSub (VarName vname) term) -> vname ++ " -> " ++ pretty term) $ cs) ++ "}"
 
 instance Vars Subst where 
+    extractVars (Empty) = []
     extractVars (VarSub var term) = var : extractVars term
     extractVars (Composition substs) = concatMap (extractVars) substs
 
@@ -56,6 +57,7 @@ Da single kein X -> X zulässt, ist die Domain die linke seite
 Hypothese: Eine Subst die nicht auf sich selber abbildet sei X -> H(X)
 -}
 domain :: Subst -> [VarName]
+domain (Empty) = []
 domain (VarSub varname term) = [varname]
 domain (Composition cs) = unique $ concatMap domain cs
 
