@@ -1,6 +1,4 @@
-module App.Substitution 
---(Subst) 
-where
+module App.Substitution (Subst, domain, empty, single, apply, compose) where
 
 import Data.List
 
@@ -15,13 +13,15 @@ data Subst = VarSub VarName Term | Composition [Subst] | Empty
 
 instance Pretty Subst where 
     pretty (Empty) = "{}"
-    pretty (VarSub vname term) = "{" ++ show vname ++ " -> " ++ pretty term ++ "}"
-    pretty (Composition cs) = "{" ++ (intercalate ", " . map pretty $ cs)
+    pretty (VarSub (VarName vname) term) = "{" ++ vname ++ " -> " ++ pretty term ++ "}"
+    pretty (Composition cs) = "{" ++ (intercalate ", " . map (\(VarSub (VarName vname) term) -> vname ++ " -> " ++ pretty term) $ cs) ++ "}"
 {-
 The domain dom(σ) of a substitution σ is commonly defined as the set of variables actually replaced, i.e. dom(σ) = { x ∈ V | xσ ≠ x }. 
 As per "On the definition of substitution, replacement and allied notions in a abstract formal system", 1952, Haskell B. Curry  
 
 Da single kein X -> X zulässt, ist die Domain die linke seite
+
+Hypothese: Eine Subst die nicht auf sich selber abbildet sei X -> H(X)
 -}
 domain :: Subst -> [VarName]
 domain (VarSub varname term) = [varname]
@@ -58,26 +58,16 @@ See page 6 https://ai.ia.agh.edu.pl/_media/pl:dydaktyka:pp:prolog-substitutions-
 compose :: Subst -> Subst -> Subst
 compose x y 
     | x == Empty || y == Empty = if x == Empty then y else x
-    | otherwise = fun x y
-        where 
-            fun x y = 
-                let 
-                    afterApply = applySub x y
-                    notIncludedY = filter (\(VarSub name _) -> substByName name afterApply == []) (toList y)
-                    substitutedLeft = filter (\x -> x /= Empty) afterApply
-                    res = substitutedLeft ++ notIncludedY
-                in if length res == 1 
-                    then head res
-                    else  (Composition res)
+    | otherwise =  
+            let res = filter (\x -> x /= Empty) $ applyRight x y ++ notInDom x y
+                    where 
+                        notInDom l r = filter (\(VarSub n0 t0) -> notElem n0 (domain r)) (toList l)
+                        applyRight l r = map (\(VarSub n t) -> (single n (apply l t))) (toList r)
 
-
-            substByName :: VarName -> [Subst] -> [Subst]
-            substByName name = filter (\(VarSub n0 _) -> name == n0)
-
-            -- should only return VarSubs
-            toList :: Subst -> [Subst]
-            toList (Composition ts) = concatMap toList ts
-            toList term = [term]
-
-            applySub :: Subst -> Subst -> [Subst]
-            applySub a b = concatMap (\e -> applySub e b) (toList a)
+                        -- should only return VarSubs
+                        toList :: Subst -> [Subst]
+                        toList (Composition ts) = concatMap toList ts
+                        toList term = [term]
+            in if length res == 1
+                then head res
+                else (Composition res)
