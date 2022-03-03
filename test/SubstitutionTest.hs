@@ -75,10 +75,10 @@ prop_test14 :: Subst -> Bool
 prop_test14 s = domain s `isSubset` allVars s
 
 prop_test15 :: [VarName] -> Bool
-prop_test15 xs = domain $ restrictTo empty xs $ == []
+prop_test15 xs = (domain $ restrictTo empty xs) == []
 
 prop_test16 :: [VarName] -> Subst -> Bool
-prop_test16 xs s = domain $ restrictTo s xs $ `isSubset` xs
+prop_test16 xs s = (domain $ restrictTo s xs) `isSubset` xs
 
 -- helper
 

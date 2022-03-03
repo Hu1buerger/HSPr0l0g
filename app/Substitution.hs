@@ -44,6 +44,11 @@ isIdentity :: Subst -> Bool
 isIdentity (VarSub vname term@(Var vname2)) = vname == vname2
 isIdentity _ = False
 
+substFromList :: [Subst] -> Subst
+substFromList xs
+    | length xs == 1 = head xs
+    | otherwise = (Composition xs) 
+
 test = do 
     item <- sample' (arbitrary :: Gen Subst)
     lines <- return $ unlines $ map (pretty) item
@@ -106,3 +111,10 @@ compose x y
             in if length res == 1
                 then head res
                 else (Composition res)
+
+restrictTo :: Subst -> [VarName] -> Subst
+restrictTo subst@(VarSub varname term) restrictset
+    | elem varname restrictset = subst
+    | otherwise = empty
+restrictTo (Composition subst) restrictset = substFromList $ (filter (/= Empty)) . (map (flip restrictTo restrictset)) $ subst
+restrictTo _ _ = Empty
