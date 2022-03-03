@@ -1,0 +1,1 @@
+prop_simple1 = domain 

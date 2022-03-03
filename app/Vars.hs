@@ -1,4 +1,6 @@
-module App.Vars (Vars, freshVars) where
+module App.Vars 
+--(Vars, freshVars) 
+where
 
 import Data.Char (ord, chr)
 
