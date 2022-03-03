@@ -7,6 +7,15 @@ class Vars a where
     extractVars :: a -> [VarName]
 
     allVars = uniqueVars . extractVars
+        where 
+            uniqueVars :: [VarName] -> [VarName]
+            uniqueVars = fun []
+                where 
+                    fun :: [VarName] -> [VarName] -> [VarName]
+                    fun acc [] = acc
+                    fun acc (x:xs)
+                        | elem x acc = fun acc xs
+                        | otherwise = fun (x:acc) xs
 
 instance Vars Term where 
     extractVars (Var varname) = [varname]
@@ -21,11 +30,3 @@ instance Vars Prog where
 instance Vars Goal where 
     extractVars (Goal terms) = concatMap allVars terms
 
-uniqueVars :: [VarName] -> [VarName]
-uniqueVars = fun []
-    where 
-        fun :: [VarName] -> [VarName] -> [VarName]
-        fun acc [] = acc
-        fun acc (x:xs)
-            | elem x acc = fun acc xs
-            | otherwise = fun (x:acc) xs
