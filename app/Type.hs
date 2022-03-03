@@ -38,9 +38,8 @@ data Goal = Goal [Term]
 instance Arbitrary Term where
   arbitrary = do
     arity <- choose (0, 2)
-    frequency [ (2, Var <$> arbitrary)
-              , (3, Comb <$> elements ["f", "g"] <*> replicateM arity arbitrary)
-              ]
+    frequency [ (2, Var <$> arbitrary), 
+                (3, Comb <$> elements ["f", "g"] <*> replicateM arity arbitrary)]
               
 -- Generator for rules
 instance Arbitrary Rule where

@@ -1,6 +1,9 @@
-module App.Substitution (Subst, domain, empty, single, apply, compose) where
+module App.Substitution 
+-- (Subst, domain, empty, single, apply, compose, isTrivialSubstitution) 
+where
 
 import Data.List
+import Test.QuickCheck
 
 import App.Type
 import App.Vars
@@ -15,6 +18,35 @@ instance Pretty Subst where
     pretty (Empty) = "{}"
     pretty (VarSub (VarName vname) term) = "{" ++ vname ++ " -> " ++ pretty term ++ "}"
     pretty (Composition cs) = "{" ++ (intercalate ", " . map (\(VarSub (VarName vname) term) -> vname ++ " -> " ++ pretty term) $ cs) ++ "}"
+
+instance Vars Subst where 
+    extractVars (VarSub var term) = var : extractVars term
+    extractVars (Composition substs) = concatMap (extractVars) substs
+
+instance Arbitrary Subst where 
+    arbitrary = do
+        listSize <- choose(2,8)
+        frequency [ (1, elements [Empty])
+                    , (10, suchThat (VarSub <$> arbitrary <*> arbitrary) (\e -> (not . isIdentity $ e) && (not . isKindaSelfSubstituting $ e)))
+                    , (1, Composition <$> vectorOf listSize (suchThat arbitrary (isTrivialSubstitution)))
+                        ]
+                        -- (Composition <$> choose (2, 6) >>= \n -> (map (arbitrary) [0..n])))
+
+isTrivialSubstitution :: Subst -> Bool
+isTrivialSubstitution (VarSub _ _) = True
+isTrivialSubstitution _ = False
+
+isKindaSelfSubstituting :: Subst -> Bool
+isKindaSelfSubstituting (VarSub name term) = elem name (allVars term)
+
+isIdentity :: Subst -> Bool
+isIdentity (VarSub vname term@(Var vname2)) = vname == vname2
+isIdentity _ = False
+
+test = do 
+    item <- sample' (arbitrary :: Gen Subst)
+    lines <- return $ unlines $ map (pretty) item
+    putStr lines
 {-
 The domain dom(σ) of a substitution σ is commonly defined as the set of variables actually replaced, i.e. dom(σ) = { x ∈ V | xσ ≠ x }. 
 As per "On the definition of substitution, replacement and allied notions in a abstract formal system", 1952, Haskell B. Curry  
@@ -41,6 +73,7 @@ single vname term@(Var vname2)
 single vname term = VarSub vname term
 
 apply :: Subst -> Term -> Term
+apply Empty term = term
 apply subst@(VarSub substvarname substterm) term = 
     case term of
         (Var vname) ->  if vname /= substvarname then term
