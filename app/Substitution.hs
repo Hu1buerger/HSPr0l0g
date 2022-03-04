@@ -56,7 +56,7 @@ apply (Subst s) (Var vn)    = case lookup vn s of
     (Just t) ->  t 
     -- apply {X -> A} Z = Z
     Nothing -> Var vn
-apply s (Comb x ts) =  Comb x (map (\t -> apply s t) ts)
+apply s (Comb x ts) =  Comb x (map (\t -> apply s t ts))
 
 --1. Schritt: Abkürzung bilden (linke Substitution auf alle rechten Seiten der rechten Substitution anwenden)
 --2. Schritt: Aus der linken Substitution alle Paare hinzufügen, deren linke Seite nicht in der Domain der rechten Substitution ist
