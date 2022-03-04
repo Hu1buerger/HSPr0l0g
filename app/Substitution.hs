@@ -20,19 +20,11 @@ instance Pretty Subst where
 instance Vars Subst where 
     extractVars (Subst su) = concatMap (\(name, term) -> name : allVars term) su
 
-{-
-instance Arbitrary Subst where 
-    arbitrary = do
-        listSize <- choose(2,8)
-        frequency [ (1, elements [Empty])
-                    , (10, suchThat (VarSub <$> arbitrary <*> arbitrary) (\e -> (not . isIdentity $ e) && (not . isKindaSelfSubstituting $ e)))
-                    , (1, Composition <$> vectorOf listSize (suchThat arbitrary (isTrivialSubstitution)))
-                        ]
-                        -- (Composition <$> choose (2, 6) >>= \n -> (map (arbitrary) [0..n])))
--}
-
 instance Arbitrary Subst where
-    arbitrary = Subst <$> listOf arbitrary
+    --arbitrary = Subst <$> listOf arbitrary
+    arbitrary = do
+        len <- choose (0,2)
+        Subst <$> vectorOf len arbitrary
 
 -- keine Identitäten, das machen wir bei single und compose 
 domain :: Subst -> [VarName]
