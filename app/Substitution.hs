@@ -1,5 +1,5 @@
 module App.Substitution 
--- (Subst, domain, empty, single, apply, compose, isTrivialSubstitution) 
+ (Subst, domain, empty, single, apply, compose, restrictTo) 
 where
 
 import Data.List
@@ -11,19 +11,16 @@ import App.Helper
 import App.Pretty
 
 
-data Subst = VarSub VarName Term | Composition [Subst] | Empty
+data Subst = Subst [(VarName, Term)]
     deriving (Eq, Show)
 
 instance Pretty Subst where 
-    pretty (Empty) = "{}"
-    pretty (VarSub (VarName vname) term) = "{" ++ vname ++ " -> " ++ pretty term ++ "}"
-    pretty (Composition cs) = "{" ++ (intercalate ", " . map (\(VarSub (VarName vname) term) -> vname ++ " -> " ++ pretty term) $ cs) ++ "}"
+    pretty (Subst list) = "{" ++ (intercalate ", "  $ map (\((VarName name), term) -> name ++ " -> " ++ pretty term) list)++ "}"
 
 instance Vars Subst where 
-    extractVars (Empty) = []
-    extractVars (VarSub var term) = var : extractVars term
-    extractVars (Composition substs) = concatMap (extractVars) substs
+    extractVars (Subst su) = concatMap (\(name, term) -> name : allVars term) su
 
+{-
 instance Arbitrary Subst where 
     arbitrary = do
         listSize <- choose(2,8)
@@ -32,89 +29,61 @@ instance Arbitrary Subst where
                     , (1, Composition <$> vectorOf listSize (suchThat arbitrary (isTrivialSubstitution)))
                         ]
                         -- (Composition <$> choose (2, 6) >>= \n -> (map (arbitrary) [0..n])))
-
-isTrivialSubstitution :: Subst -> Bool
-isTrivialSubstitution (VarSub _ _) = True
-isTrivialSubstitution _ = False
-
-isKindaSelfSubstituting :: Subst -> Bool
-isKindaSelfSubstituting (VarSub name term) = elem name (allVars term)
-
-isIdentity :: Subst -> Bool
-isIdentity (VarSub vname term@(Var vname2)) = vname == vname2
-isIdentity _ = False
-
-substFromList :: [Subst] -> Subst
-substFromList xs
-    | length xs == 1 = head xs
-    | otherwise = (Composition xs) 
-
-test = do 
-    item <- sample' (arbitrary :: Gen Subst)
-    lines <- return $ unlines $ map (pretty) item
-    putStr lines
-{-
-The domain dom(σ) of a substitution σ is commonly defined as the set of variables actually replaced, i.e. dom(σ) = { x ∈ V | xσ ≠ x }. 
-As per "On the definition of substitution, replacement and allied notions in a abstract formal system", 1952, Haskell B. Curry  
-
-Da single kein X -> X zulässt, ist die Domain die linke seite
-
-Hypothese: Eine Subst die nicht auf sich selber abbildet sei X -> H(X)
 -}
+
+instance Arbitrary Subst where
+    arbitrary = Subst <$> listOf arbitrary
+
+-- keine Identitäten, das machen wir bei single und compose 
 domain :: Subst -> [VarName]
-domain (Empty) = []
-domain (VarSub varname term) = [varname]
-domain (Composition cs) = unique $ concatMap domain cs
+--domain (Subst[])       = []
+--domain (Subst(p : xs)) = fst p : domain (Subst xs)
+domain (Subst s) = map fst s 
 
+--{}
+empty :: Subst 
+empty = Subst []
 
-empty :: Subst
-empty = Empty
-
-{-
-allowing the Substituion X -> h(X)
--}
+--{X -> f(T)}
 single :: VarName -> Term -> Subst
-single vname term@(Var vname2) 
-    | vname == vname2 = empty
-    | otherwise = VarSub vname term
-single vname term = VarSub vname term
+single v t = case t of 
+    (Var vn) -> if v == vn then empty else Subst [(v,t)]
+    (Comb c ts) -> Subst [(v,t)]
 
 apply :: Subst -> Term -> Term
-apply Empty term = term
-apply subst@(VarSub substvarname substterm) term = 
-    case term of
-        (Var vname) ->  if vname /= substvarname then term
-                        else substterm
-        (Comb cname terms) -> Comb cname $ map (apply subst) terms
+apply (Subst s) (Var vn)    = case lookup vn s of 
+    -- apply {X -> A} X = A 
+    (Just t) ->  t 
+    -- apply {X -> A} Z = Z
+    Nothing -> Var vn
+apply s (Comb x ts) =  Comb x (map (\t -> apply s t) ts)
 
-apply (Composition s) term = applyAll term s
-    where 
-        applyAll term [] = term
-        applyAll term (x:xs) = applyAll (apply x term) xs
+--1. Schritt: Abkürzung bilden (linke Substitution auf alle rechten Seiten der rechten Substitution anwenden)
+--2. Schritt: Aus der linken Substitution alle Paare hinzufügen, deren linke Seite nicht in der Domain der rechten Substitution ist
+--3. Schritt: Filtere alle Abb. der Form {X-> Var X} raus
+compose :: Subst -> Subst -> Subst 
+compose l@(Subst s1) r@(Subst s2) = Subst (stepThree(stepOne l s2 ++ stepTwo s1 (domain r)))
+    where
+        stepOne :: Subst -> [(VarName, Term)] -> [(VarName, Term)]
+        --stepOne _  [] = []
+        --stepOne subst ((lhs,rsh):ps) = (lhs, apply subst rhs) : stepOne subst ps 
 
-{-
-See page 6 https://ai.ia.agh.edu.pl/_media/pl:dydaktyka:pp:prolog-substitutions-unification.pdf
--}
-compose :: Subst -> Subst -> Subst
-compose x y 
-    | x == Empty || y == Empty = if x == Empty then y else x
-    | otherwise =  
-            let res = filter (\x -> x /= Empty) $ applyRight x y ++ notInDom x y
-                    where 
-                        notInDom l r = filter (\(VarSub n0 t0) -> notElem n0 (domain r)) (toList l)
-                        applyRight l r = map (\(VarSub n t) -> (single n (apply l t))) (toList r)
+        stepOne subst ps = map (\(lhs, rhs) -> (lhs, apply subst rhs)) ps 
 
-                        -- should only return VarSubs
-                        toList :: Subst -> [Subst]
-                        toList (Composition ts) = concatMap toList ts
-                        toList term = [term]
-            in if length res == 1
-                then head res
-                else (Composition res)
+        stepTwo :: [(VarName, Term)] -> [VarName] -> [(VarName, Term)]
+        stepTwo ps forbidden = filter (\(v,t) -> v `notElem` forbidden) ps 
 
-restrictTo :: Subst -> [VarName] -> Subst
-restrictTo subst@(VarSub varname term) restrictset
-    | elem varname restrictset = subst
-    | otherwise = empty
-restrictTo (Composition subst) restrictset = substFromList $ (filter (/= Empty)) . (map (flip restrictTo restrictset)) $ subst
-restrictTo _ _ = Empty
+        stepThree :: [(VarName, Term)] -> [(VarName, Term)]
+        stepThree ps = filter help ps
+
+        help :: (VarName, Term) -> Bool
+        help (vn, Var x) = if vn /= x then True else False
+        help _ = True 
+
+restrictTo :: Subst -> [VarName] -> Subst 
+--restrictTo res (Subst ((v,t):ps)) = if v `elem` res then let (Subst ps') = restrictTo res (Subst ps)
+                                                        --in Subst ((v,t) : ps')
+                                                   -- else restrictTo res (Subst ps)
+--restrictTo res (Subst []) = Subst []
+
+restrictTo (Subst s) res = Subst (filter (\(v,_) -> v `elem` res  ) s)

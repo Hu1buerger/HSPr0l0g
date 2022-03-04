@@ -38,8 +38,10 @@ prop_test2 :: VarName -> Term -> Bool
 prop_test2 x t = apply (single x t) (Var x) == t
 
 prop_test3 :: Term -> Subst -> Subst -> Bool
---prop_test3 t s1 s2 = isTrivialSubstitution s1 && isTrivialSubstitution s2 ==> apply (compose s1 s2) t == apply s1 (apply s2 t)
 prop_test3 t s1 s2 = apply (compose s1 s2) t == apply s1 (apply s2 t)
+
+--prop_test3a :: Term -> Subst -> Subst -> Property
+--prop_test3a t s1 s2 = isTrivialSubstitution s1 && isTrivialSubstitution s2 ==> apply (compose s1 s2) t == apply s1 (apply s2 t)
 
 prop_test4 :: Term -> Subst -> Subst -> Bool
 prop_test4 t s1 s2 = domain empty == []
@@ -62,8 +64,9 @@ prop_test9 = allVars empty == []
 prop_test10 :: VarName -> Bool
 prop_test10 n = allVars (single n (Var n)) == []
 
+-- todo allVars (single x t) seems to reverse the order
 prop_test11 :: VarName -> Term -> Property
-prop_test11 x t = (Var x) /= t ==> allVars (single x t) == allVars t `union` [x]
+prop_test11 x t = (Var x) /= t ==> (allVars (single x t)) `listEquals` (allVars t `union` [x])
 
 prop_test12 :: Subst -> Subst -> Bool
 prop_test12 s1 s2 = allVars (compose s1 s2) `isSubset` (allVars s1 `union` allVars s2)
@@ -84,6 +87,8 @@ prop_test16 xs s = (domain $ restrictTo s xs) `isSubset` xs
 
 isSubset :: Ord a => [a] -> [a] -> Bool
 isSubset a b = (fromList a) `isSubsetOf` (fromList b)
+
+listEquals a b = isSubset a b && isSubset b a 
 
 -- Check all properties in this module:
 return []
