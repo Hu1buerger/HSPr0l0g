@@ -5,10 +5,12 @@ where
 import Data.Char (ord, chr)
 
 import App.Type
+import App.Helper (unique)
 
 az :: [Char]
 --az = map (chr) $ iterate (\x -> if x < ord 'Z' then x + 1 else ord 'A') (ord 'A')
-az = map chr $ [(ord 'A')..(ord 'Z')]
+-- az = map chr $ [(ord 'A')..(ord 'Z')]
+az = ['A'..'Z']
 
 freshVars :: [VarName]
 freshVars = map fmtTpl [(c, i) | i <- [-1..], c <- az]

@@ -69,7 +69,7 @@ compose l@(Subst s1) r@(Subst s2) = Subst (stepThree(stepOne l s2 ++ stepTwo s1 
         stepThree ps = filter help ps
 
         help :: (VarName, Term) -> Bool
-        help (vn, Var x) = if vn /= x then True else False
+        help (vn, Var x) = vn /= x
         help _ = True 
 
 restrictTo :: Subst -> [VarName] -> Subst 
