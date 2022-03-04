@@ -23,8 +23,8 @@ instance Vars Subst where
 instance Arbitrary Subst where
     --arbitrary = Subst <$> listOf arbitrary
     arbitrary = do
-        len <- choose (0,2)
-        Subst <$> vectorOf len arbitrary
+        len <- choose (0,4)
+        suchThat (Subst <$> vectorOf len arbitrary) (\(Subst list) -> all (\(id, term) -> id `notElem` (allVars term)) list)
 
 -- keine Identitäten, das machen wir bei single und compose 
 domain :: Subst -> [VarName]
@@ -78,4 +78,4 @@ restrictTo :: Subst -> [VarName] -> Subst
                                                    -- else restrictTo res (Subst ps)
 --restrictTo res (Subst []) = Subst []
 
-restrictTo (Subst s) res = Subst (filter (\(v,_) -> v `elem` res  ) s)
+restrictTo (Subst s) res = Subst (filter (\(v,_) -> v `elem` res) s)
