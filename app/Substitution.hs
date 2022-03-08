@@ -21,16 +21,15 @@ instance Vars Subst where
     extractVars (Subst su) = concatMap (\(name, term) -> name : allVars term) su
 
 instance Arbitrary Subst where
-    --arbitrary = Subst <$> listOf arbitrary
     arbitrary = do
-        len <- choose (0,4)
-        suchThat (Subst <$> vectorOf len arbitrary) (\(Subst list) -> all (\(id, term) -> id `notElem` (allVars term)) list)
+        names <- listOf (arbitrary :: Gen VarName)
+        terms <- listOf (arbitrary :: Gen Term) 
+        let subs = zip (unique names) (unique terms)
+        return (Subst $ subs)
 
 -- keine Identitäten, das machen wir bei single und compose 
 domain :: Subst -> [VarName]
---domain (Subst[])       = []
---domain (Subst(p : xs)) = fst p : domain (Subst xs)
-domain (Subst s) = map fst s 
+domain (Subst s) = unique $ map fst s 
 
 --{}
 empty :: Subst 
@@ -48,7 +47,7 @@ apply (Subst s) (Var vn)    = case lookup vn s of
     (Just t) ->  t 
     -- apply {X -> A} Z = Z
     Nothing -> Var vn
-apply s (Comb x ts) =  Comb x (map (\t -> apply s t) ts)
+apply s (Comb x ts) =  Comb x (map (apply s) ts)
 
 --1. Schritt: Abkürzung bilden (linke Substitution auf alle rechten Seiten der rechten Substitution anwenden)
 --2. Schritt: Aus der linken Substitution alle Paare hinzufügen, deren linke Seite nicht in der Domain der rechten Substitution ist
@@ -57,9 +56,6 @@ compose :: Subst -> Subst -> Subst
 compose l@(Subst s1) r@(Subst s2) = Subst (stepThree(stepOne l s2 ++ stepTwo s1 (domain r)))
     where
         stepOne :: Subst -> [(VarName, Term)] -> [(VarName, Term)]
-        --stepOne _  [] = []
-        --stepOne subst ((lhs,rsh):ps) = (lhs, apply subst rhs) : stepOne subst ps 
-
         stepOne subst ps = map (\(lhs, rhs) -> (lhs, apply subst rhs)) ps 
 
         stepTwo :: [(VarName, Term)] -> [VarName] -> [(VarName, Term)]
@@ -72,10 +68,5 @@ compose l@(Subst s1) r@(Subst s2) = Subst (stepThree(stepOne l s2 ++ stepTwo s1 
         help (vn, Var x) = vn /= x
         help _ = True 
 
-restrictTo :: Subst -> [VarName] -> Subst 
---restrictTo res (Subst ((v,t):ps)) = if v `elem` res then let (Subst ps') = restrictTo res (Subst ps)
-                                                        --in Subst ((v,t) : ps')
-                                                   -- else restrictTo res (Subst ps)
---restrictTo res (Subst []) = Subst []
-
+restrictTo :: Subst -> [VarName] -> Subst
 restrictTo (Subst s) res = Subst (filter (\(v,_) -> v `elem` res) s)
