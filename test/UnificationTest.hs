@@ -4,6 +4,7 @@ import Data.Maybe
 import Test.QuickCheck
 
 import App.Type 
+import App.Pretty
 import App.Substitution
 import App.Unification
 
@@ -27,6 +28,10 @@ instance Arbitrary NothingDS where
     arbitrary = (uncurry NothingDS <$> (suchThat arbitrary (\(a,b) -> ds a b == Nothing)))
 instance Arbitrary JustDS where 
     arbitrary = (uncurry JustDS <$> (suchThat arbitrary (\(a,b) -> ds a b /= Nothing)))
+
+
+-- skript page 145 #1
+prop_fromSkript1 = (pretty $ fromJust $ unify (Comb "ehemann" [Comb "monika" [],Var (VarName "M")]) (Comb "ehemann" [Var (VarName "F"),Comb "herbert" []])) == "{M -> herbert, F -> monika}"
 
 -- Check all properties in this module:
 return []

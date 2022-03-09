@@ -1,4 +1,6 @@
-module App.Unification where
+module 
+App.Unification 
+where
 
 import Data.Maybe
 
@@ -28,7 +30,7 @@ unify = fun empty
         fun sk t0 t1
             | dsres == Nothing = Just sk                    -- Unifikationsalgo step 2; mgu found
             | sub == Nothing = Nothing                      -- step3; sonnst fail
-            | otherwise = fun (compose (fromJust sub) sk) t0 t1
+            | otherwise = fun (compose sk (fromJust sub)) t0 t1
             where 
                 t0k = apply sk t0
                 t1k = apply sk t1

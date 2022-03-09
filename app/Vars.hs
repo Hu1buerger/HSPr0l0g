@@ -1,4 +1,5 @@
-module App.Vars (Vars, freshVars, allVars, extractVars) 
+module App.Vars 
+(Vars, freshVars, allVars, extractVars) 
 where
 
 import Data.Char (ord, chr)

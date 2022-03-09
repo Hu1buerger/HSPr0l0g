@@ -18,7 +18,7 @@ instance Pretty Subst where
     pretty (Subst list) = "{" ++ (intercalate ", "  $ map (\((VarName name), term) -> name ++ " -> " ++ pretty term) list)++ "}"
 
 instance Vars Subst where 
-    extractVars (Subst su) = concatMap (\(name, term) -> name : allVars term) su
+    extractVars (Subst su) = concatMap (\(name, term) -> allVars term ++ [name]) su
 
 instance Arbitrary Subst where
     arbitrary = do

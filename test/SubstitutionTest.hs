@@ -3,7 +3,6 @@
 import Test.QuickCheck
 
 import Data.List (union)
-import Data.Set (fromList, isSubsetOf)
 
 import App.Type
 import App.Pretty
@@ -82,13 +81,6 @@ prop_test15 xs = (domain $ restrictTo empty xs) == []
 
 prop_test16 :: [VarName] -> Subst -> Bool
 prop_test16 xs s = (domain $ restrictTo s xs) `isSubset` xs
-
--- helper
-
-isSubset :: Ord a => [a] -> [a] -> Bool
-isSubset a b = (fromList a) `isSubsetOf` (fromList b)
-
-listEquals a b = isSubset a b && isSubset b a 
 
 -- Check all properties in this module:
 return []

@@ -1,7 +1,6 @@
 module App.Type
-  ( VarName(VarName), CombName, Term(Var, Comb), Rule(Rule), Prog(Prog)
-  , Goal(Goal)
-  ) where
+  ( VarName(VarName), CombName, Term(Var, Comb), Rule(Rule), Prog(Prog), Goal(Goal)) 
+  where
 
 import Control.Monad
 

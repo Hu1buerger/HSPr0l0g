@@ -11,7 +11,7 @@ import Data.Maybe
 
 import Text.Parsec hiding (parse)
 
-import Type
+import App.Type
 
 -- Type class for parsing
 class Parse a where
