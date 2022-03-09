@@ -15,19 +15,18 @@ data Node = Node Goal Subst [Node]
 
 --resolutionStep :: Goal -> Prog -> [(Subst, Goal)]
 --resolutionStep goal (Prog rules) = map (fromJust) $ filter (isJust) $ map (resolutionStepOnGoal goal) rules
-resolutionStep goal (Prog rules) = map (resolutionStepOnGoal goal) rules
+resolutionStep goal (Prog rules) = map (fromJust) $ filter (isJust) $ map (resolutionStepOnGoal goal) rules
 
 resolutionStepOnGoal :: Goal -> Rule -> Maybe (Subst, Goal)
 resolutionStepOnGoal (Goal [t]) r@(Rule left right) 
-    -- | isNothing mmgu = Nothing
-    -- | otherwise = traceShow mmgu $ Just (fromJust mmgu, (Goal $ map (apply sigma) right))
-    | otherwise = Just (empty, (Goal []))
+    | isNothing mmgu = Nothing
+    | otherwise = Just (fromJust mmgu, (Goal $ map (apply sigma) right))
     where 
         mmgu = unify left t -- (traceShowId t) 
         sigma = fromJust mmgu
 
 resolutionStepOnGoal (Goal (t:ts)) r
-    | isNothing step = step
+    | isJust step = step
     | otherwise = resolutionStepOnGoal (Goal ts) r
     where 
         step = resolutionStepOnGoal (Goal [t]) r
