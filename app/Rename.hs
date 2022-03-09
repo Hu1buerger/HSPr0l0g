@@ -1,4 +1,6 @@
-module App.Rename where 
+module 
+ App.Rename 
+ where 
 
 import App.Substitution
 import App.Type

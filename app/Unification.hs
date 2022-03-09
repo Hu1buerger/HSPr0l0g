@@ -1,6 +1,8 @@
 module 
-App.Unification 
-where
+ App.Unification 
+ where
+
+import Debug.Trace
 
 import Data.Maybe
 
@@ -12,7 +14,9 @@ ds :: Term -> Term -> Maybe (Term, Term)
 ds t1@(Var vn) t2 
     | t1 /= t2 = Just (t1, t2)
     | otherwise = Nothing -- not sure. def 4.2 #2 is unspecific
-ds t1 t2@(Var vn) = ds t2 t1
+ds t1 t2@(Var vn) 
+    | t1 /= t2 = Just (t1, t2)
+    | otherwise = Nothing
 ds t1@(Comb nl t) t2@(Comb nr s)
     | nl /= nr  = Just (t1, t2)
     | length t /= length s = Just (t1, t2)
@@ -41,5 +45,9 @@ unify = fun empty
         buildSubst (Just (Var vn, term))
             | vn `notElem` allVars term = Just $ single vn term -- occurence check step 3
             | otherwise = Nothing
-        buildSubst (Just (term, Var vn)) = buildSubst $ Just (Var vn, term)
+        -- buildSubst (Just (Var vn, Var vn2))
+        --    | vn == vn2 = error "no susbstitution should be build"
+        --   | otherwise = Just $ single vn (Var vn2)
+        --buildSubst (Just (t1, t2)) = error (show t1 ++ " ---- " ++ show t2)
+        buildSubst (Just (term, Var vn)) = buildSubst (Just (Var vn, term))
         buildSubst _ = Nothing
