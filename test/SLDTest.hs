@@ -1,4 +1,6 @@
 
+import Debug.Trace
+
 import Data.Either 
 import Data.Maybe
 
@@ -35,3 +37,5 @@ resses = resolutionStep goal prog
 newGoal = Goal [Comb "follows" [Var (VarName "S"),Var (VarName "C")],Comb "teaches" [Comb "peter" [],Var (VarName "C")]]
 
 newRess = resolutionStep newGoal prog
+
+test (Rule left rigth) = traceShowId rigth

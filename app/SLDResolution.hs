@@ -20,7 +20,7 @@ resolutionStep goal (Prog rules) = map (fromJust) $ filter (isJust) $ map (resol
 resolutionStepOnGoal :: Goal -> Rule -> Maybe (Subst, Goal)
 resolutionStepOnGoal (Goal [t]) r@(Rule left right) 
     | isNothing mmgu = Nothing
-    | otherwise = Just (fromJust mmgu, (Goal $ map (apply sigma) right))
+    | otherwise = Just (sigma, (Goal $ [apply sigma t]))
     where 
         mmgu = unify left t -- (traceShowId t) 
         sigma = fromJust mmgu
