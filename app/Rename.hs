@@ -15,23 +15,31 @@ rename illegals rule@(Rule left rigths) =
         validVars = filter (`notElem` allillegals) freshVars -- build new substitutions
         subst = foldl compose empty (zipWith (\old new -> single old (Var new)) ruleVars validVars)
 
+        mintyVars = take (length ruleVars) validVars
         terms = left : rigths
-        newVaildHead = take (length ruleVars) freshVars
-        termsAfter = snd $ applyOrAnon subst (newVaildHead, []) terms
-        newLeft = head termsAfter
-        newRights = tail termsAfter
-    in (Rule newLeft newRights)
-        where 
+        terms' = map (apply subst) terms
+
+        ((left': rights'), _) = deanonList terms' mintyVars
+    in (Rule left' rigths')
             
-applyOrAnon :: Subst -> ([VarName], [Term]) -> [Term] -> ([VarName], [Term])
-applyOrAnon subst (mintyvars, acc) terms = foldl (fun subst) (mintyvars, acc) terms
-fun subst (mintyvars, acc) (Var vn)
-    | vn == anonymousVarName = (nextFreshest, [(Var fv)])
-    | otherwise = (freshVars, [afterApply] ++ acc)
-    where 
-        fv = head mintyvars
-        nextFreshest = tail mintyvars
-        afterApply = apply subst (Var vn)
-fun subst (mintyvars, acc) (Comb cn terms) = 
-    let (newMintys, combterms) = applyOrAnon subst (mintyvars, []) terms
-    in (newMintys, [Comb cn combterms] ++ acc)
+deanon :: [VarName] -> Term -> (Term, [VarName])
+deanon illegals (Var vn) =
+    let vn' = head $ filter (`notElem` illegals) freshVars
+    in ((Var vn'), vn' : illegals)
+deanon illegals (Comb c ts) = Comb c (deanonList illegals ts)
+
+deanonList :: [VarName] -> [Term] -> ([Term], [VarName])
+deanonList illegals [] = ([], illegals)
+deanonList illegals (t : ts) = 
+    let 
+        (t', forbidden') = deanon t illegals
+        (ts', forbidden'') = deanonList forbidden' ts
+    in (t':ts', forbidden'')
+
+deanonRules :: [VarName] -> Rule -> (Rule, [VarName])
+deanonRules illegals (Rule left rigths) 
+    let
+        terms = left : rigths 
+        (terms', forbidden') = deanonList illegals terms
+        (left' : rigths') = terms'
+    in (Rule left' rigths', forbidden')
