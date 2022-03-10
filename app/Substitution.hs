@@ -2,29 +2,10 @@ module App.Substitution
  (Subst, domain, empty, single, apply, compose, restrictTo) 
 where
 
-import Data.List
-import Test.QuickCheck
-
 import App.SubstType
 
 import App.Type
-import App.Vars
 import App.Helper
-import App.Pretty
-
-
-instance Pretty Subst where 
-    pretty (Subst list) = "{" ++ (intercalate ", "  $ map (\((VarName name), term) -> name ++ " -> " ++ pretty term) list)++ "}"
-
-instance Vars Subst where 
-    extractVars (Subst su) = concatMap (\(name, term) -> allVars term ++ [name]) su
-
-instance Arbitrary Subst where
-    arbitrary = do
-        names <- listOf (arbitrary :: Gen VarName)
-        terms <- listOf (arbitrary :: Gen Term) 
-        let subs = zip (unique names) (unique terms)
-        return (Subst $ subs)
 
 -- keine Identitäten, das machen wir bei single und compose 
 domain :: Subst -> [VarName]
@@ -38,7 +19,7 @@ empty = Subst []
 single :: VarName -> Term -> Subst
 single v t = case t of 
     (Var vn) -> if v == vn then empty else Subst [(v,t)]
-    (Comb c ts) -> Subst [(v,t)]
+    (Comb _ _) -> Subst [(v,t)]
 
 apply :: Subst -> Term -> Term
 apply (Subst s) (Var vn)    = case lookup vn s of 
@@ -58,7 +39,7 @@ compose l@(Subst s1) r@(Subst s2) = Subst (stepThree(stepOne l s2 ++ stepTwo s1 
         stepOne subst ps = map (\(lhs, rhs) -> (lhs, apply subst rhs)) ps 
 
         stepTwo :: [(VarName, Term)] -> [VarName] -> [(VarName, Term)]
-        stepTwo ps forbidden = filter (\(v,t) -> v `notElem` forbidden) ps 
+        stepTwo ps forbidden = filter (\(v,_) -> v `notElem` forbidden) ps 
 
         stepThree :: [(VarName, Term)] -> [(VarName, Term)]
         stepThree ps = filter help ps

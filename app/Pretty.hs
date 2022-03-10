@@ -14,10 +14,10 @@ instance Pretty Term where
     pretty (Var (VarName name)) = name
 
     pretty (Comb cmbname []) = cmbname
-    pretty (Comb cmbname combitems) = cmbname ++ tail
+    pretty (Comb cmbname combitems) = cmbname ++ tailRename
         where 
             tailmap = map (pretty) combitems
-            tail = "(" ++ intercalate ", " tailmap ++ ")"
+            tailRename = "(" ++ intercalate ", " tailmap ++ ")"
 
 instance Pretty Rule where 
     pretty (Rule term []) = pretty term ++ "."

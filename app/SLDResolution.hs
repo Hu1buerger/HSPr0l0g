@@ -16,6 +16,8 @@ import App.Vars
 
 data SLDTree = SLDTree Goal [(Subst, SLDTree)] deriving (Show, Eq)
 
+type Strategy = SLDTree -> [Subst]
+
 instance Pretty SLDTree where
     pretty = unlines . drawRose
         where
@@ -54,7 +56,7 @@ sldHelper illegals prog@(Prog programmRules) currentGoal@(Goal goals) =
 
         arrrrr (Prog rulez) (Goal goalez) = nub $ (concatMap (allVars) rulez)  ++ (concatMap (allVars) goalez)
 
--- verbotene Namen -> umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
+--  umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
 unifyRule :: [Term] -> Rule -> Maybe (Subst, [Term])
 unifyRule []     _                  = Nothing
 unifyRule (t:ts) (Rule lhs rhs) 
@@ -83,8 +85,6 @@ bfs t = bfs' [(empty, t)]
   bfs' ((s, SLDTree (Goal [])  _):q) = s : bfs' q
   bfs' ((s, SLDTree (Goal  _) []):q) = bfs' q
   bfs' ((s, SLDTree (Goal  _) cs):q) = bfs' (q ++ map (\(sub, t) -> (compose sub s, t)) cs)
-
-type Strategy = SLDTree -> [Subst]
 
 solveWith :: Prog -> Goal -> Strategy -> [Subst]
 solveWith p g s = map (flip restrictTo (allVars g)) (s (sld p g))

@@ -2,17 +2,10 @@ module App.Vars
 (Vars, freshVars, allVars, extractVars, anonymousVarName) 
 where
 
-import Data.Char (ord, chr)
-
 import App.Type
-import App.Helper (unique)
-
 
 anonymousVarName :: VarName
 anonymousVarName = VarName "_"
-
-anonymous :: Term
-anonymous = Var anonymousVarName
 
 freshVars :: [VarName]
 freshVars = [fmtTpl (c, i) | i <- [-1..], c <- ['A'..'Z']]

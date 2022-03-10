@@ -2,18 +2,11 @@ module
 App.Helper
  where
 
-import Data.List (delete, nub)
+import Data.List (nub)
 import Data.Set (fromList, isSubsetOf)
 
 unique :: Eq a => [a] -> [a]
 unique = nub
-{-unique = fun [] 
-    where
-        fun acc [] = reverse acc
-        fun acc (x:xs)
-            | elem x acc = fun acc xs
-            | otherwise = fun (x:acc) xs
--}
 
 isSubset :: Ord a => [a] -> [a] -> Bool
 isSubset a b = (fromList a) `isSubsetOf` (fromList b)

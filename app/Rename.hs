@@ -9,7 +9,7 @@ import App.Vars
 
 
 renameRules :: [VarName] -> [Rule] -> [Rule]
-renameRules illegals rules = fst $ fun illegals rules 
+renameRules renameIllegal rules = fst $ fun renameIllegal rules 
     where 
         fun i [] = ([], i)
         fun illegals (r:rs) = 
