@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+module Test.RenameTest where 
+
 import Data.List(intersect)
 import Test.QuickCheck
 

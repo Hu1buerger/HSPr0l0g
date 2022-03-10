@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+module Test.SubstitutionTest where 
+
 import Test.QuickCheck
 
 import Data.List (union)
@@ -71,7 +73,7 @@ prop_test12 :: Subst -> Subst -> Bool
 prop_test12 s1 s2 = allVars (compose s1 s2) `isSubset` (allVars s1 `union` allVars s2)
 
 prop_test13 :: VarName -> VarName -> Property
-prop_test13 x1 x2 = x1 /= x2 ==> allVars (compose (single x2 $ Var x1) (single x1 $ Var x2)) == [x1, x2]
+prop_test13 x1 x2 = x1 /= x2 ==> allVars (compose (single x2 $ Var x1) (single x1 $ Var x2)) `listEquals` [x1, x2]
 
 prop_test14 :: Subst -> Bool
 prop_test14 s = domain s `isSubset` allVars s

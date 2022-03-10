@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+module Test.VarsTest where 
+
 import Test.QuickCheck
 
 import App.Type

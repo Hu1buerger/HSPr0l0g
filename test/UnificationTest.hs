@@ -1,5 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
+module Test.UnificationTest where 
+
 import Data.Maybe
 import Test.QuickCheck
 
@@ -33,7 +35,7 @@ instance Arbitrary JustDS where
 -- skript page 145 #1
 prop_fromSkript1 = (pretty $ fromJust $ unify (Comb "ehemann" [Comb "monika" [],Var (VarName "M")]) (Comb "ehemann" [Var (VarName "F"),Comb "herbert" []])) == "{M -> herbert, F -> monika}"
 
-prop_regression1 = (unify (Comb "student_of" [Var (VarName "S"),Comb "peter" []]) (Comb "student_of" [Var (VarName "X"),Var (VarName "T")])) == Just (compose (single (VarName "T") (Comb "peter" [])) (single (VarName "X") (Var (VarName "S"))))
+prop_regression1 = (unify (Comb "student_of" [Var (VarName "S"),Comb "peter" []]) (Comb "student_of" [Var (VarName "X"),Var (VarName "T")])) == Just (compose (single (VarName "T") (Comb "peter" [])) (single (VarName "S") (Var (VarName "X"))))
 
 -- Check all properties in this module:
 return []

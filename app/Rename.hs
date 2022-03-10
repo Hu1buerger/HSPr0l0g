@@ -1,11 +1,23 @@
 module 
- App.Rename (rename)
+ App.Rename (rename, renameRules)
  where 
 
 import Data.List 
 import App.Substitution
 import App.Type
 import App.Vars
+
+
+renameRules :: [VarName] -> [Rule] -> [Rule]
+renameRules illegals rules = fst $ fun illegals rules 
+    where 
+        fun i [] = ([], i)
+        fun illegals (r:rs) = 
+            let 
+                illegals' = nub $ illegals ++ allVars r 
+                (rs', illegals'') = fun illegals' rs
+                r' = rename illegals r
+            in (r' : rs', illegals'')
 
 rename :: [VarName] -> Rule -> Rule
 rename illegals rule@(Rule left rigths) =  
