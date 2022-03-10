@@ -6,9 +6,9 @@ import qualified Test.SubstitutionTest
 import qualified Test.UnificationTest
 import qualified Test.VarsTest
 
-import Test.QuickCheck
 
 -- Check all properties in this module:
+testAll :: IO Bool
 testAll = Test.PrettyTest.testAll 
     >> Test.RenameTest.testAll 
     >> Test.SubstitutionTest.testAll

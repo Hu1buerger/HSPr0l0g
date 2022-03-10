@@ -14,19 +14,33 @@ import App.Helper
 
 -- pretty
 
+prop_pretty1 :: Bool
 prop_pretty1 = pretty empty == "{}"
+
+prop_pretty2 :: Bool
 prop_pretty2 = pretty (single (VarName "A") (Var (VarName "A"))) == pretty empty
+
+prop_pretty3 :: Bool
 prop_pretty3 = pretty (compose (single (VarName "A") (Var (VarName "A"))) (single (VarName "B") (Var (VarName "B")))) == pretty empty
+
+prop_pretty4 :: Bool
 prop_pretty4 = pretty (compose (single (VarName "A") (Var (VarName "B"))) (single (VarName "B") (Var (VarName "A")))) == "{A -> B}"
+
+prop_pretty5 :: Bool
 prop_pretty5 = pretty (compose (single (VarName "A") (Var (VarName "B"))) (single (VarName "A") (Var (VarName "C")))) == "{A -> C}"
+
+prop_pretty6 :: Bool
 prop_pretty6 = pretty (compose (single (VarName "D") (Var (VarName "E"))) (single (VarName "F") (Comb "f" [Var (VarName"D"), Comb "true" []])))
     == "{F -> f(E, true), D -> E}"
+
+prop_pretty7 :: Bool
 prop_pretty7 = pretty (compose (single (VarName "G") (Var (VarName "H"))) (single (VarName "I") (Var (VarName "J"))))
     == "{I -> J, G -> H}"
 
 -- vars
 
-prop_var_1 = unorderedEquals 
+prop_var_1 :: Bool
+prop_var_1 = listEquals 
                     (allVars (compose (single (VarName "G") (Var (VarName "H"))) (single (VarName "I") (Var (VarName "J")))))
                     [VarName "H",VarName "G",VarName "J",VarName "I"]
 
@@ -45,7 +59,7 @@ prop_test3 t s1 s2 = apply (compose s1 s2) t == apply s1 (apply s2 t)
 --prop_test3a t s1 s2 = isTrivialSubstitution s1 && isTrivialSubstitution s2 ==> apply (compose s1 s2) t == apply s1 (apply s2 t)
 
 prop_test4 :: Term -> Subst -> Subst -> Bool
-prop_test4 t s1 s2 = domain empty == []
+prop_test4 _ _ _ = domain empty == []
 
 prop_test5 :: VarName -> Bool
 prop_test5 n = domain (single n (Var n)) == []
@@ -86,4 +100,5 @@ prop_test16 xs s = (domain $ restrictTo s xs) `isSubset` xs
 
 -- Check all properties in this module:
 return []
+testAll :: IO Bool
 testAll = $quickCheckAll

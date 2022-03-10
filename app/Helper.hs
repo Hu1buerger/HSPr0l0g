@@ -15,16 +15,6 @@ unique = nub
             | otherwise = fun (x:acc) xs
 -}
 
-unorderedEquals :: Eq a => [a] -> [a] -> Bool
-unorderedEquals a b 
-    | length a /= length b = False
-    | otherwise = fun a b 
-        where 
-            fun [] [] = True
-            fun (a:as) b 
-                | notElem a b = False
-                | otherwise = fun as (delete a b)
-
 isSubset :: Ord a => [a] -> [a] -> Bool
 isSubset a b = (fromList a) `isSubsetOf` (fromList b)
 

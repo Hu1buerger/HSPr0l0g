@@ -7,6 +7,7 @@ import Test.QuickCheck
 import App.Type
 import App.Vars
 
+prop_var_1 :: Bool
 prop_var_1 = allVars (Var (VarName "A")) == [(VarName "A")]
 
 prop_TermHasVar :: Term -> Property
@@ -21,8 +22,9 @@ prop_RuleHasVar rule = nonemptyRule rule ==> allVars rule /= []
 prop_UniqueRuleVars :: Rule -> Property
 prop_UniqueRuleVars rule = nonemptyRule rule ==> isunique $ allVars rule
 
+isunique :: Eq a => [a] -> Bool
 isunique [] = True
-isunique [x] = True
+isunique [_] = True
 isunique (x:xs) = notElem x xs && isunique xs
 
 nonemptyTerm :: Term -> Bool
@@ -35,4 +37,5 @@ nonemptyRule (Rule left rights) = any nonemptyTerm (left:rights)
 
 -- Check all properties in this module:
 return []
+testAll :: IO Bool
 testAll = $quickCheckAll

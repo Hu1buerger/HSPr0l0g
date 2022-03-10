@@ -29,4 +29,5 @@ prop_goal_13 = pretty (Goal [Comb "=" [Var (VarName "X"), Comb "false" []], Comb
 
 -- Check all properties in this module:
 return []
+testAll :: IO Bool
 testAll = $quickCheckAll

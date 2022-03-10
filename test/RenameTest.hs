@@ -10,6 +10,7 @@ import App.Type
 import App.Rename
 import App.Vars
 
+prop_test1 :: [VarName] -> 
 prop_test1 xs r = allVars (rename xs r) `intersect` allVars r == []
 
 prop_test2 xs r = allVars (rename xs r) `intersect` xs == []
@@ -25,4 +26,5 @@ prop_rename_anon = 1 < (length $ allVars $ rename [] (Rule (Comb "a" [Var (VarNa
 
 -- Check all properties in this module:
 return []
+testAll :: IO Bool
 testAll = $quickCheckAll

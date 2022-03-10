@@ -35,38 +35,56 @@ instance Pretty SLDTree where
 sld :: Prog -> Goal -> SLDTree
 sld prog goal = sldHelper (allVars prog) prog goal 
 
+sldHelper :: [VarName] -> Prog -> Goal -> SLDTree
 sldHelper _ _ (Goal []) = SLDTree (Goal []) []
 sldHelper illegals prog@(Prog programmRules) currentGoal@(Goal goals) =  
     let 
-        progRules' = Prog $ renameRules illegals programmRules
+        
+        progRules' = renameRules illegals programmRules
         illegals' = nub $ illegals ++ (arrrrr prog $ Goal goals)
 
-        powset = powerset goals 
-        res = concat [unifyRules [] programmRules i | i <- powset]
+        maybeNodes = map (unifyRule goals) progRules'
+        nodes = map fromJust $ filter isJust maybeNodes
 
-        possibleNodes = map (\(s,g) -> (s, sldHelper illegals' progRules' $ Goal g)) res
-        -- nodes = filter (\(_,t) -> notemptySLD t) possibleNodes
-    in SLDTree currentGoal possibleNodes
+        subTrees = map (\(s,g) -> (s, sldHelper illegals' (Prog progRules') $ Goal g)) nodes
+
+    in SLDTree currentGoal subTrees
     where 
         notemptySLD (SLDTree (Goal gt) _) = gt /= []
 
         arrrrr (Prog rulez) (Goal goalez) = nub $ (concatMap (allVars) rulez)  ++ (concatMap (allVars) goalez)
 
-powerset :: [a] -> [[a]]
-powerset l = reverse [take i l| i <- [1..(length l)]]
-
-unifyRules :: [VarName] -> [Rule] -> [Term] -> [(Subst, [Term])]
-unifyRules illegals rulez query = map fromJust $ filter isJust $ map (\rule -> unifyRule illegals rule query) rulez
-
 -- verbotene Namen -> umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
-unifyRule :: [VarName] -> Rule -> [Term] -> Maybe (Subst, [Term])
-unifyRule _ (Rule _ _) [] = Nothing
-unifyRule illegals (Rule left rights) query 
+unifyRule :: [Term] -> Rule -> Maybe (Subst, [Term])
+unifyRule []     _                  = Nothing
+unifyRule (t:ts) (Rule lhs rhs) 
     -- | isJust mmgu && sigma == empty = Nothing
-    | isJust mmgu = Just (sigma, map (apply sigma) $ nexts ++ rights)
-    | otherwise = unifyRule illegals (Rule left rights) nexts
+    | isJust mmgu = Just (sigma, map (apply sigma) (rhs ++ ts))
+    | otherwise = Nothing
     where 
-        current = head query
-        nexts = tail query
-        mmgu = unify left current
-        sigma = fromJust mmgu 
+        mmgu = unify lhs t
+        sigma = fromJust mmgu
+
+dfs :: SLDTree -> [Subst]
+dfs t = dfsHelp (empty, t) where
+ dfsHelp :: (Subst, SLDTree) -> [Subst]
+ -- Heureka, Erfolg!
+ dfsHelp (s, SLDTree (Goal []) _ ) = [s]
+ -- Misserfolg
+ dfsHelp (s, SLDTree (Goal ts) []) = []
+ -- Bilde rekursiv Kante von Root zu den Unterknoten.
+ dfsHelp (s, SLDTree (Goal  _) cs) = concatMap (\(sub, t) -> dfsHelp (compose sub s, t)) cs
+
+bfs :: SLDTree -> [Subst]
+bfs t = bfs' [(empty, t)]
+ where
+  bfs' :: [(Subst, SLDTree)] -> [Subst]
+  bfs' [] = []
+  bfs' ((s, SLDTree (Goal [])  _):q) = s : bfs' q
+  bfs' ((s, SLDTree (Goal  _) []):q) = bfs' q
+  bfs' ((s, SLDTree (Goal  _) cs):q) = bfs' (q ++ map (\(sub, t) -> (compose sub s, t)) cs)
+
+type Strategy = SLDTree -> [Subst]
+
+solveWith :: Prog -> Goal -> Strategy -> [Subst]
+solveWith p g s = map (flip restrictTo (allVars g)) (s (sld p g))
