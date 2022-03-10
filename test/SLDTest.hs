@@ -4,6 +4,8 @@ import Debug.Trace
 import Data.Either 
 import Data.Maybe
 
+import App.SubstType
+
 import App.Type
 import App.Parser (parse)
 import App.Pretty
@@ -18,27 +20,10 @@ parseGoal = (fromRight (error "big error") . parse)
 parseProg :: String -> Prog
 parseProg = (fromRight (error "big error") . parse)
 
-goal = (Goal [Comb "student_of" [Var (VarName "S"),Comb "peter" []]])
-prog = parseProg "student_of(X,T):-follows(X,C),teaches(T,C).\nfollows(paul,computer_science).\nfollows(paul,expert_systems).\nfollows(maria,ai_techniques).\nteaches(adrian,expert_systems).\nteaches(peter,ai_techniques).\nteaches(peter,computer_science)."
+prop_regression1 = 
+    let 
+        goal = (Goal [Comb "student_of" [Var (VarName "S"),Comb "peter" []]])
+        prog = parseProg "student_of(X,T):-follows(X,C),teaches(T,C).\nfollows(paul,computer_science).\nfollows(paul,expert_systems).\nfollows(maria,ai_techniques).\nteaches(adrian,expert_systems).\nteaches(peter,ai_techniques).\nteaches(peter,computer_science)."
 
-terms (Prog t) = t
-goalAs (Goal t) = t  
-
-goalTerm = goalAs goal !! 0
-firstTarget = terms prog !! 0
-
-ruleIdent (Rule left _) = left
-ruleRight (Rule _ rigths) = rigths
-
-g = [(Comb "student_of" [Var (VarName "S"),Comb "peter" []])]
-
-res = sld prog goal
-{-
-resses = resolutionStep goal prog
-
-newGoal = Goal [Comb "follows" [Var (VarName "S"),Var (VarName "C")],Comb "teaches" [Comb "peter" [],Var (VarName "C")]]
-
-newRess = resolutionStep newGoal prog
-
-test (Rule left rigth) = traceShowId rigth
--}
+        res = SLDTree (Goal [Comb "student_of" [Var (VarName "S"),Comb "peter" []]]) [(Subst [(VarName "T",Comb "peter" []),(VarName "X",Var (VarName "S"))],SLDTree (Goal [Comb "follows" [Var (VarName "S"),Var (VarName "C")],Comb "teaches" [Comb "peter" [],Var (VarName "C")]]) [(Subst [(VarName "C",Comb "computer_science" []),(VarName "S",Comb "paul" [])],SLDTree (Goal [Comb "teaches" [Comb "peter" [],Comb "computer_science" []]]) []),(Subst [(VarName "C",Comb "expert_systems" []),(VarName "S",Comb "paul" [])],SLDTree (Goal [Comb "teaches" [Comb "peter" [],Comb "expert_systems" []]]) []),(Subst [(VarName "C",Comb "ai_techniques" []),(VarName "S",Comb "maria" [])],SLDTree (Goal [Comb "teaches" [Comb "peter" [],Comb "ai_techniques" []]]) [])])]
+    in res == sld prog goal 

@@ -5,14 +5,13 @@ where
 import Data.List
 import Test.QuickCheck
 
+import App.SubstType
+
 import App.Type
 import App.Vars
 import App.Helper
 import App.Pretty
 
-
-data Subst = Subst [(VarName, Term)]
-    deriving (Eq, Show)
 
 instance Pretty Subst where 
     pretty (Subst list) = "{" ++ (intercalate ", "  $ map (\((VarName name), term) -> name ++ " -> " ++ pretty term) list)++ "}"

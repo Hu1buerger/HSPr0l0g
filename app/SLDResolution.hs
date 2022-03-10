@@ -11,20 +11,20 @@ import App.Type
 import App.Substitution
 import App.Unification
 
-data SLDTree = SLDTree Goal [(Subst, SLDTree)] deriving (Show)
+data SLDTree = SLDTree Goal [(Subst, SLDTree)] deriving (Show, Eq)
 
 instance Pretty SLDTree where
     pretty = unlines . drawRose
         where
             drawRose :: SLDTree -> [String]
-            drawRose (SLDTree (Goal []) _) = "empty goal" : []
-            drawRose (SLDTree goal []) = [pretty goal ++ "empty tail"]
+            drawRose (SLDTree (Goal []) _) = error "something unexpected"
+            drawRose (SLDTree goal []) = [pretty goal ++ " []"]
             drawRose (SLDTree goal subst) = pretty goal : aux subst
 
             aux :: [(Subst, SLDTree)] -> [String]
             aux [] = []
             aux [(s, tree)] = shift "+-- " "|   " ((pretty s) : drawRose tree)
-            aux (t:ts) = shift "+-- " "|   " (aux [t]) ++ aux ts
+            aux (t:ts)      = shift "+-- " "|   " (aux [t]) ++ aux ts
 
             shift :: [a] -> [a] -> [[a]] -> [[a]]
             shift first other = zipWith (++) (first : repeat other)
@@ -36,8 +36,11 @@ sld prog@(Prog programmRules) currentGoal@(Goal goals) =
     let 
         powset = powerset goals 
         res = concat [unifyRules [] programmRules i | i <- powset]
-    in SLDTree currentGoal $ map (\(s,g) -> (s, sld prog $ Goal g)) res
-    
+        possibleNodes = map (\(s,g) -> (s, sld prog $ Goal g)) res
+        nodes = filter (\(_,t) -> notemptySLD t) possibleNodes
+    in SLDTree currentGoal nodes
+    where 
+        notemptySLD (SLDTree (Goal gt) _) = gt /= []
     {-unifyWide
     where 
         unifyWide :: [(Subst, [Term])]

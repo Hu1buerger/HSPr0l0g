@@ -19,7 +19,7 @@ data Term = Var VarName | Comb CombName [Term]
 
 -- Data type for program rules
 data Rule = Rule Term [Term]
-  deriving Show
+  deriving (Eq, Show)
 
 -- Data type for programs
 data Prog = Prog [Rule]
@@ -27,7 +27,7 @@ data Prog = Prog [Rule]
 
 -- Data type for goals
 data Goal = Goal [Term]
-  deriving Show
+  deriving (Eq, Show)
 
 -- Generator for variable names
 instance Arbitrary VarName where
