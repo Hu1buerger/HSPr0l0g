@@ -49,5 +49,5 @@ unify = fun empty
         --    | vn == vn2 = error "no susbstitution should be build"
         --   | otherwise = Just $ single vn (Var vn2)
         --buildSubst (Just (t1, t2)) = error ("wr-one direction?" ++ show t1 ++ " ---- " ++ show t2)
-        --buildSubst (Just (term, Var vn)) = buildSubst (Just (Var vn, term))
-        buildSubst _ = Nothing
+        buildSubst (Just (term, Var vn)) = buildSubst (Just (Var vn, term))
+        buildSubst t = Nothing

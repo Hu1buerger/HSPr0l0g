@@ -6,15 +6,39 @@ import Debug.Trace
 
 import Data.Maybe
 
+import App.Pretty
 import App.Type
 import App.Substitution
 import App.Unification
 
 data SLDTree = SLDTree Goal [(Subst, SLDTree)] deriving (Show)
 
+instance Pretty SLDTree where
+    pretty = unlines . drawRose
+        where
+            drawRose :: SLDTree -> [String]
+            drawRose (SLDTree (Goal []) _) = "empty goal" : []
+            drawRose (SLDTree goal []) = [pretty goal ++ "empty tail"]
+            drawRose (SLDTree goal subst) = pretty goal : aux subst
+
+            aux :: [(Subst, SLDTree)] -> [String]
+            aux [] = []
+            aux [(s, tree)] = shift "+-- " "|   " ((pretty s) : drawRose tree)
+            aux (t:ts) = shift "+-- " "|   " (aux [t]) ++ aux ts
+
+            shift :: [a] -> [a] -> [[a]] -> [[a]]
+            shift first other = zipWith (++) (first : repeat other)
+
 -- sld :: Prog -> Goal -> SLDTree
 --SLDTree currentGoal $ map (\(subs, goalterms') -> (subs, sld prog (Goal goalterms')))
-sld prog@(Prog programmRules) currentGoal@(Goal goals) =  unifyWide
+sld _ (Goal []) = SLDTree (Goal []) []
+sld prog@(Prog programmRules) currentGoal@(Goal goals) =  
+    let 
+        powset = powerset goals 
+        res = concat [unifyRules [] programmRules i | i <- powset]
+    in SLDTree currentGoal $ map (\(s,g) -> (s, sld prog $ Goal g)) res
+    
+    {-unifyWide
     where 
         unifyWide :: [(Subst, [Term])]
         unifyWide = foldl (unifyOrDump) [] programmRules
@@ -25,6 +49,7 @@ sld prog@(Prog programmRules) currentGoal@(Goal goals) =  unifyWide
                 subTerm = fromJust maybeUnifyied
             in if isNothing maybeUnifyied then acc
                                           else acc ++ [subTerm]
+                                          -}
 
 powerset :: [a] -> [[a]]
 powerset l = reverse [take i l| i <- [1..(length l)]]
@@ -34,9 +59,11 @@ unifyRules illegals rulez query = map fromJust $ filter isJust $ map (\rule -> u
 
 -- verbotene Namen -> umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
 unifyRule :: [VarName] -> Rule -> [Term] -> Maybe (Subst, [Term])
+unifyRule _ (Rule _ _) [] = Nothing
 unifyRule illegals (Rule left rights) query 
+    | isJust mmgu && sigma == empty = Nothing
     | isJust mmgu = Just (sigma, map (apply sigma) $ nexts ++ rights)
-    | otherwise = Nothing
+    | otherwise = unifyRule illegals (Rule left rights) nexts
     where 
         current = head query
         nexts = tail query
