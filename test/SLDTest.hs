@@ -32,7 +32,7 @@ ruleRight (Rule _ rigths) = rigths
 
 g = [(Comb "student_of" [Var (VarName "S"),Comb "peter" []])]
 
-res = unifyRule [] firstTarget g
+res = sld prog goal
 {-
 resses = resolutionStep goal prog
 
