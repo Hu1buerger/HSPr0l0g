@@ -1,6 +1,6 @@
-module CommandLine where
+module App.CommandLine where
 
-import Parser (simpleParse, goal)
+import App.Parser (simpleParse, goal)
 
 readGoal = do
     line <- getLine
