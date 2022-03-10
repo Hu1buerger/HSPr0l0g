@@ -30,8 +30,10 @@ firstTarget = terms prog !! 0
 ruleIdent (Rule left _) = left
 ruleRight (Rule _ rigths) = rigths
 
-g = (Comb "student_of" [Var (VarName "S"),Comb "peter" []])
+g = [(Comb "student_of" [Var (VarName "S"),Comb "peter" []])]
 
+res = unifyRule [] firstTarget g
+{-
 resses = resolutionStep goal prog
 
 newGoal = Goal [Comb "follows" [Var (VarName "S"),Var (VarName "C")],Comb "teaches" [Comb "peter" [],Var (VarName "C")]]
@@ -39,3 +41,4 @@ newGoal = Goal [Comb "follows" [Var (VarName "S"),Var (VarName "C")],Comb "teach
 newRess = resolutionStep newGoal prog
 
 test (Rule left rigth) = traceShowId rigth
+-}

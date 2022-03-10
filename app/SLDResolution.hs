@@ -10,23 +10,15 @@ import App.Type
 import App.Substitution
 import App.Unification
 
-data SLDTree = Root Goal Node 
-data Node = Node Goal Subst [Node]
+data SLDTree = SLDTree Goal [(Subst, SLDTree)] deriving (Show)
 
---resolutionStep :: Goal -> Prog -> [(Subst, Goal)]
---resolutionStep goal (Prog rules) = map (fromJust) $ filter (isJust) $ map (resolutionStepOnGoal goal) rules
-resolutionStep goal (Prog rules) = map (fromJust) $ filter (isJust) $ map (resolutionStepOnGoal goal) rules
-
-resolutionStepOnGoal :: Goal -> Rule -> Maybe (Subst, Goal)
-resolutionStepOnGoal (Goal [t]) r@(Rule left right) 
-    | isNothing mmgu = Nothing
-    | otherwise = Just (sigma, (Goal $ [apply sigma t]))
+-- verbotene Namen -> umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
+unifyRule :: [VarName] -> Rule -> [Term] -> Maybe (Subst, [Term])
+unifyRule illegals (Rule left rights) query 
+    | isJust mmgu = Just (sigma, map (apply sigma) $ nexts ++ rights)
+    | otherwise = Nothing
     where 
-        mmgu = unify left t -- (traceShowId t) 
-        sigma = fromJust mmgu
-
-resolutionStepOnGoal (Goal (t:ts)) r
-    | isJust step = step
-    | otherwise = resolutionStepOnGoal (Goal ts) r
-    where 
-        step = resolutionStepOnGoal (Goal [t]) r
+        current = head query
+        nexts = tail query
+        mmgu = unify left current
+        sigma = fromJust mmgu 
