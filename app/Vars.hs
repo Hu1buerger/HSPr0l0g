@@ -1,5 +1,5 @@
 module App.Vars 
-(Vars, freshVars, allVars, extractVars) 
+(Vars, freshVars, allVars, extractVars, anonymousVarName) 
 where
 
 import Data.Char (ord, chr)
@@ -7,13 +7,15 @@ import Data.Char (ord, chr)
 import App.Type
 import App.Helper (unique)
 
-az :: [Char]
---az = map (chr) $ iterate (\x -> if x < ord 'Z' then x + 1 else ord 'A') (ord 'A')
--- az = map chr $ [(ord 'A')..(ord 'Z')]
-az = ['A'..'Z']
+
+anonymousVarName :: VarName
+anonymousVarName = VarName "_"
+
+anonymous :: Term
+anonymous = Var anonymousVarName
 
 freshVars :: [VarName]
-freshVars = [fmtTpl (c, i) | i <- [-1..], c <- az]
+freshVars = [fmtTpl (c, i) | i <- [-1..], c <- ['A'..'Z']]
     where 
         fmtTpl :: (Char, Integer) -> VarName
         fmtTpl (c, n)

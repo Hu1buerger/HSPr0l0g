@@ -10,8 +10,8 @@ rename :: [VarName] -> Rule -> Rule
 rename illegals rule@(Rule left rigths) =  
     let 
         ruleVars = allVars rule
-        allillegals = illegals ++ ruleVars
-        validVars = filter (`notElem` allillegals) freshVars
+        allillegals = anonymousVarName : illegals ++ ruleVars
+        validVars = filter (`notElem` allillegals) freshVars -- build new substitutions
         subst = foldl compose empty (zipWith (\old new -> single old (Var new)) ruleVars validVars)
         newLeft = apply subst left
         newRights = map (apply subst) rigths

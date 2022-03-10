@@ -19,6 +19,8 @@ prop_test4 xs r = (VarName "_") `notElem` allVars r ==> sameLength (allVars $ re
 prop_test5 xs r = length (allVars $ rename xs r) >= (length (allVars r))
 
 
+prop_rename_anon = 1 < (length $ allVars $ rename [] (Rule (Comb "a" [Var (VarName "_"),Var (VarName "_")]) []))
+
 -- Check all properties in this module:
 return []
 testAll = $quickCheckAll

@@ -22,3 +22,5 @@ unifyRule illegals (Rule left rights) query
         nexts = tail query
         mmgu = unify left current
         sigma = fromJust mmgu 
+
+        
