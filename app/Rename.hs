@@ -1,5 +1,5 @@
 module 
- App.Rename 
+ App.Rename (rename)
  where 
 
 import Data.List 
@@ -15,29 +15,32 @@ rename illegals rule@(Rule left rigths) =
         validVars = filter (`notElem` allillegals) freshVars -- build new substitutions
         subst = foldl compose empty (zipWith (\old new -> single old (Var new)) ruleVars validVars)
 
-        mintyVars = take (length ruleVars) validVars
-        terms = left : rigths
-        terms' = map (apply subst) terms
+        (left': rights') = map (apply subst) (left : rigths)
+        rule' = (Rule left' rights')
+        illegals' = allillegals ++ allVars rule'
+    in  fst $ deanonRules illegals' rule'
 
-        ((left': rights'), _) = deanonList terms' mintyVars
-    in (Rule left' rigths')
             
 deanon :: [VarName] -> Term -> (Term, [VarName])
-deanon illegals (Var vn) =
+deanon illegals (Var (VarName "_")) =
     let vn' = head $ filter (`notElem` illegals) freshVars
     in ((Var vn'), vn' : illegals)
-deanon illegals (Comb c ts) = Comb c (deanonList illegals ts)
+deanon illegals (Var vn) = (Var vn, illegals)
+deanon illegals (Comb c ts) = 
+    let 
+        (terms', forbidden') = deanonList illegals ts
+    in (Comb c terms', forbidden')
 
 deanonList :: [VarName] -> [Term] -> ([Term], [VarName])
 deanonList illegals [] = ([], illegals)
 deanonList illegals (t : ts) = 
     let 
-        (t', forbidden') = deanon t illegals
+        (t', forbidden') = deanon illegals t
         (ts', forbidden'') = deanonList forbidden' ts
     in (t':ts', forbidden'')
 
 deanonRules :: [VarName] -> Rule -> (Rule, [VarName])
-deanonRules illegals (Rule left rigths) 
+deanonRules illegals (Rule left rigths) =
     let
         terms = left : rigths 
         (terms', forbidden') = deanonList illegals terms
