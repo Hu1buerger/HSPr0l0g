@@ -20,7 +20,7 @@ instance Pretty SLDTree where
     pretty = unlines . drawRose
         where
             drawRose :: SLDTree -> [String]
-            drawRose (SLDTree (Goal []) _) =  ["(Goal []) []"] --error "something unexpected"
+            drawRose (SLDTree (Goal []) _) =  ["(Goal []) []"]
             drawRose (SLDTree goal []) = [pretty goal ++ " []"]
             drawRose (SLDTree goal subst) = pretty goal : aux subst
 
@@ -52,11 +52,10 @@ sldHelper illegals prog@(Prog programmRules) currentGoal@(Goal goals) =
     where 
         arrrrr (Prog rulez) (Goal goalez) = nub $ (concatMap (allVars) rulez)  ++ (concatMap (allVars) goalez)
 
---  umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
+-- umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
 unifyRule :: [Term] -> Rule -> Maybe (Subst, [Term])
 unifyRule []     _                  = Nothing
 unifyRule (t:ts) (Rule lhs rhs) 
-    -- | isJust mmgu && sigma == empty = Nothing
     | isJust mmgu = Just (sigma, map (apply sigma) (rhs ++ ts))
     | otherwise = Nothing
     where 
@@ -67,20 +66,20 @@ solveWith :: Prog -> Goal -> Strategy -> [Subst]
 solveWith p g s = map (flip restrictTo (allVars g)) (s (sld p g))
 
 dfs :: SLDTree -> [Subst]
-dfs t' = dfsHelp (empty, t') where
- dfsHelp :: (Subst, SLDTree) -> [Subst]
+dfs t' = fun (empty, t') where
+ fun :: (Subst, SLDTree) -> [Subst]
  -- Heureka, Erfolg!
- dfsHelp (s, SLDTree (Goal []) _ ) = [s]
+ fun (s, SLDTree (Goal []) _ ) = [s]
  -- Misserfolg
- dfsHelp (_, SLDTree (Goal _) []) = []
+ fun (_, SLDTree (Goal _) []) = []
  -- Bilde rekursiv Kante von Root zu den Unterknoten.
- dfsHelp (s, SLDTree (Goal  _) cs) = concatMap (\(sub, t) -> dfsHelp (compose sub s, t)) cs
+ fun (s, SLDTree (Goal  _) cs) = concatMap (\(sub, t) -> fun (compose sub s, t)) cs
 
 bfs :: SLDTree -> [Subst]
-bfs t' = bfs' [(empty, t')]
+bfs t' = fun [(empty, t')]
  where
-  bfs' :: [(Subst, SLDTree)] -> [Subst]
-  bfs' [] = []
-  bfs' ((s, SLDTree (Goal [])  _):q) = s : bfs' q
-  bfs' ((_, SLDTree (Goal  _) []):q) = bfs' q
-  bfs' ((s, SLDTree (Goal  _) cs):q) = bfs' (q ++ map (\(sub, t) -> (compose sub s, t)) cs)
+  fun :: [(Subst, SLDTree)] -> [Subst]
+  fun [] = []
+  fun ((s, SLDTree (Goal [])  _):q) = s : fun q
+  fun ((_, SLDTree (Goal  _) []):q) = fun q
+  fun ((s, SLDTree (Goal  _) cs):q) = fun (q ++ map (\(sub, t) -> (compose sub s, t)) cs)

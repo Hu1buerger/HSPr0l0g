@@ -28,16 +28,6 @@ newtype NothingDS = NothingDS (Term, Term) deriving Show
 instance Arbitrary NothingDS where
   arbitrary = NothingDS <$> arbitrary `suchThat` (\(a,b) -> isNothing $ ds a b) 
 
-{-
-data NothingDS = NothingDS Term Term deriving (Show)
-data JustDS = JustDS Term Term deriving (Show)
-
-instance Arbitrary NothingDS where
-    arbitrary = (uncurry NothingDS <$> (suchThat arbitrary (\(a,b) -> ds a b == Nothing)))
-instance Arbitrary JustDS where 
-    arbitrary = (uncurry JustDS <$> (suchThat arbitrary (\(a,b) -> ds a b /= Nothing)))
--}
-
 -- skript page 145 #1
 prop_fromSkript1 :: Bool 
 prop_fromSkript1 = (pretty $ fromJust $ unify (Comb "ehemann" [Comb "monika" [],Var (VarName "M")]) (Comb "ehemann" [Var (VarName "F"),Comb "herbert" []])) == "{M -> herbert, F -> monika}"

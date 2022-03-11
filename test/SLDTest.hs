@@ -20,9 +20,6 @@ parseGoal = (fromRight (error "big error") . parse)
 parseProg :: String -> Prog
 parseProg = (fromRight (error "big error") . parse)
 
-parseTerm :: String -> Term 
---parseTerm = (fromRight (error "big error") . parse)
-parseTerm = undefined
 
 prop_regression1 = 
     let 
