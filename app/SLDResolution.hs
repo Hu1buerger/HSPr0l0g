@@ -2,8 +2,6 @@ module
  App.SLDResolution 
  where 
 
-import Debug.Trace
-
 import Data.Maybe
 import Data.List (nub)
 
@@ -52,8 +50,6 @@ sldHelper illegals prog@(Prog programmRules) currentGoal@(Goal goals) =
 
     in SLDTree currentGoal subTrees
     where 
-        notemptySLD (SLDTree (Goal gt) _) = gt /= []
-
         arrrrr (Prog rulez) (Goal goalez) = nub $ (concatMap (allVars) rulez)  ++ (concatMap (allVars) goalez)
 
 --  umbenannte Regel -> Terme des Goals -> Nothing not unifiyable | Just (mgu, neue RegelTerme)
@@ -67,24 +63,24 @@ unifyRule (t:ts) (Rule lhs rhs)
         mmgu = unify lhs t
         sigma = fromJust mmgu
 
+solveWith :: Prog -> Goal -> Strategy -> [Subst]
+solveWith p g s = map (flip restrictTo (allVars g)) (s (sld p g))
+
 dfs :: SLDTree -> [Subst]
-dfs t = dfsHelp (empty, t) where
+dfs t' = dfsHelp (empty, t') where
  dfsHelp :: (Subst, SLDTree) -> [Subst]
  -- Heureka, Erfolg!
  dfsHelp (s, SLDTree (Goal []) _ ) = [s]
  -- Misserfolg
- dfsHelp (s, SLDTree (Goal ts) []) = []
+ dfsHelp (_, SLDTree (Goal _) []) = []
  -- Bilde rekursiv Kante von Root zu den Unterknoten.
  dfsHelp (s, SLDTree (Goal  _) cs) = concatMap (\(sub, t) -> dfsHelp (compose sub s, t)) cs
 
 bfs :: SLDTree -> [Subst]
-bfs t = bfs' [(empty, t)]
+bfs t' = bfs' [(empty, t')]
  where
   bfs' :: [(Subst, SLDTree)] -> [Subst]
   bfs' [] = []
   bfs' ((s, SLDTree (Goal [])  _):q) = s : bfs' q
-  bfs' ((s, SLDTree (Goal  _) []):q) = bfs' q
+  bfs' ((_, SLDTree (Goal  _) []):q) = bfs' q
   bfs' ((s, SLDTree (Goal  _) cs):q) = bfs' (q ++ map (\(sub, t) -> (compose sub s, t)) cs)
-
-solveWith :: Prog -> Goal -> Strategy -> [Subst]
-solveWith p g s = map (flip restrictTo (allVars g)) (s (sld p g))

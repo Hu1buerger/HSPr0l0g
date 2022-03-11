@@ -19,3 +19,5 @@ b(b).
 % in the goal, the solution should be the empty substitution.
 % Note that if anonymous variables are not correctly handled, there probably
 % will not be any solutions.
+
+% XXX tested all queries with success 
