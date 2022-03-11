@@ -1,4 +1,4 @@
-module App.Main where
+module Main where
 
 import Prelude (putStrLn, putStr, IO, Monad ((>>)))
 

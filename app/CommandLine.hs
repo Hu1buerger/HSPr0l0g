@@ -11,8 +11,7 @@ import App.Type
 
 readCommand :: IO String
 readCommand = do 
-    putStr "?- "
-    getLine
+    putStr "?- " >> getLine
 
 startRepl :: IO ()
 startRepl = repl dfs (Prog []) Nothing
@@ -20,7 +19,6 @@ startRepl = repl dfs (Prog []) Nothing
 repl :: Strategy -> Prog -> (Maybe FilePath) -> IO ()
 repl strat prog filepath = do 
     cmd <- readCommand
-    putStr "\n"
     res <- eval strat prog filepath cmd
     let suc = isRight res
     if suc 
@@ -121,6 +119,7 @@ eval s p f (':':c:ss)
                             success s p f
                     success s p f
 eval s p f input 
+    | input == [] = fail "pls repeat yourself"
     | head input == ':' = success s p f
     | isGoal = 
         do  
