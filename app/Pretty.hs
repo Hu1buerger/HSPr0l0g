@@ -24,7 +24,7 @@ instance Pretty Rule where
     pretty (Rule term right) = pretty term ++ " :- " ++ (intercalate ", " . map pretty $ right)  ++ "."
 
 instance Pretty Prog where 
-    pretty (Prog rules) = intercalate "\n" . map pretty $ rules
+    pretty (Prog rules) = unlines $ map pretty $ rules
 
 instance Pretty Goal where
     pretty (Goal goals) = "?- " ++ (intercalate ", " . map pretty $ goals) ++ "." 
